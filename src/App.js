@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { io } from 'socket.io-client';
 import './App.css';
 
@@ -9,6 +9,8 @@ function App() {
 	const [isRunning, setIsRunning] = useState(false);
 	const [logs, setLogs] = useState([]);
 	const [currentTime, setCurrentTime] = useState(new Date());
+	const orbCanvasRef = useRef(null);
+	const activeRef = useRef(false);
 
 	useEffect(() => {
 		socket.on('status-update', (data) => setIsRunning(data.isRunning));
@@ -25,6 +27,79 @@ function App() {
 	useEffect(() => {
 		const clock = window.setInterval(() => setCurrentTime(new Date()), 1000);
 		return () => window.clearInterval(clock);
+	}, []);
+
+	useEffect(() => {
+		activeRef.current = isRunning;
+	}, [isRunning]);
+
+	useEffect(() => {
+		const canvas = orbCanvasRef.current;
+		if (!canvas) return undefined;
+
+		const context = canvas.getContext('2d');
+		const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+		let animationFrame;
+		let width = 0;
+		let height = 0;
+
+		const resize = () => {
+			const bounds = canvas.getBoundingClientRect();
+			const pixelRatio = window.devicePixelRatio || 1;
+			width = bounds.width;
+			height = bounds.height;
+			canvas.width = width * pixelRatio;
+			canvas.height = height * pixelRatio;
+			context.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
+		};
+
+		const draw = (timestamp) => {
+			const time = reduceMotion ? 0 : timestamp * 0.00035;
+			const active = activeRef.current;
+			context.clearRect(0, 0, width, height);
+			context.save();
+			context.beginPath();
+			context.arc(width / 2, height / 2, width / 2 - 1, 0, Math.PI * 2);
+			context.clip();
+
+			const rimGradient = context.createLinearGradient(0, 0, width, height);
+			rimGradient.addColorStop(0, active ? 'rgba(191, 246, 198, .9)' : 'rgba(255, 255, 255, .82)');
+			rimGradient.addColorStop(.42, active ? 'rgba(91, 194, 111, .2)' : 'rgba(196, 224, 215, .12)');
+			rimGradient.addColorStop(.7, active ? 'rgba(151, 230, 164, .7)' : 'rgba(230, 205, 161, .66)');
+			rimGradient.addColorStop(1, 'rgba(255, 255, 255, .08)');
+			context.translate(width / 2, height / 2);
+			context.rotate(time * .22);
+			context.lineWidth = width * .022;
+			context.strokeStyle = rimGradient;
+			context.beginPath();
+			const rimPoints = 96;
+			for (let index = 0; index <= rimPoints; index += 1) {
+				const angle = (index / rimPoints) * Math.PI * 2;
+				const wave = Math.sin(angle * 5 + time * 1.4) * width * .012 + Math.sin(angle * 9 - time) * width * .006;
+				const radius = width * .485 + wave;
+				const x = Math.cos(angle) * radius;
+				const y = Math.sin(angle) * radius;
+				if (index === 0) context.moveTo(x, y);
+				else context.lineTo(x, y);
+			}
+			context.stroke();
+			context.lineWidth = width * .008;
+			context.strokeStyle = 'rgba(255, 255, 255, .5)';
+			context.beginPath();
+			context.arc(0, 0, width * .472, Math.PI * 1.05, Math.PI * 1.72);
+			context.stroke();
+			context.restore();
+
+			if (!reduceMotion) animationFrame = window.requestAnimationFrame(draw);
+		};
+
+		resize();
+		window.addEventListener('resize', resize);
+		draw(0);
+		return () => {
+			window.cancelAnimationFrame(animationFrame);
+			window.removeEventListener('resize', resize);
+		};
 	}, []);
 
 	const sendRequest = async (endpoint, body) => {
@@ -80,6 +155,7 @@ function App() {
 					onClick={isRunning ? handleStop : handleStart}
 					aria-label={isRunning ? 'Stop time announcements' : 'Start time announcements'}
 				>
+					<canvas className="orb-liquid" ref={orbCanvasRef} aria-hidden="true" />
 					<span className="orb-shine" />
 					<span className="orb-content">
 						<span className="orb-label">{isRunning ? 'Announcing' : 'Local time'}</span>
