@@ -1,6 +1,8 @@
 # Chronos
 
-Chronos is a macOS time announcer with a React interface. It keeps the Mac awake and speaks the current time on a configurable schedule.
+Chronos is a macOS time announcer with a TypeScript React interface. It keeps the Mac awake and speaks the current time on a configurable schedule.
+
+The frontend uses Tailwind CSS, a shadcn-style `components/ui` structure, and a React Three Fiber shader orb.
 
 ## Requirements
 
@@ -8,6 +10,12 @@ Chronos is a macOS time announcer with a React interface. It keeps the Mac awake
 - Node.js 18 or newer
 - npm
 - The macOS commands `say` and `caffeinate` (included with macOS)
+
+## Frontend Structure
+
+- `src/components/ui/gradient-orb.tsx` - GPU-rendered gradient orb component
+- `src/lib/utils.ts` - shared class-name utility
+- `src/App.tsx` - Chronos page and announcement controls
 
 ## Install
 
