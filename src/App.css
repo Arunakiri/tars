@@ -1,10 +1,5 @@
 * { box-sizing: border-box; }
 
-.ambient-texture { position: absolute; z-index: 0; width: 70vw; height: 70vw; max-width: 900px; max-height: 900px; border-radius: 50%; opacity: .12; pointer-events: none; filter: blur(32px); mix-blend-mode: screen; animation: ambient-breathe 18s ease-in-out infinite; }
-.ambient-texture::after { position: absolute; inset: -20%; background-image: repeating-linear-gradient(118deg, rgba(255, 255, 255, .08) 0, rgba(255, 255, 255, .08) 1px, transparent 1px, transparent 22px); content: ''; opacity: .22; transform: rotate(12deg); }
-.ambient-texture-one { top: -28%; left: -22%; background: radial-gradient(circle, rgba(200, 166, 117, .55), transparent 64%); }
-.ambient-texture-two { right: -26%; bottom: -34%; background: radial-gradient(circle, rgba(69, 127, 113, .58), transparent 64%); animation-delay: -9s; }
-.is-active .ambient-texture-one { background: radial-gradient(circle, rgba(113, 181, 125, .55), transparent 64%); }
-.is-active .ambient-texture-two { background: radial-gradient(circle, rgba(97, 188, 116, .62), transparent 64%); }
-@keyframes ambient-breathe { 0%, 100% { transform: scale(.92) translate3d(0, 0, 0); opacity: .08; } 50% { transform: scale(1.08) translate3d(3%, -2%, 0); opacity: .16; } }
-@media (prefers-reduced-motion: reduce) { .ambient-texture { animation: none; } }
+.starfield-background, .starfield-overlay { position: absolute; z-index: 0; inset: 0; pointer-events: none; }
+.starfield-background { background-position: center center; background-size: cover; background-repeat: no-repeat; }
+.starfield-overlay { background: linear-gradient(180deg, rgba(5, 12, 18, .58), rgba(5, 12, 18, .7)), radial-gradient(circle at 50% 48%, rgba(12, 25, 29, .1), rgba(2, 7, 10, .62) 82%); }
