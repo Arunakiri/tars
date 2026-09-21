@@ -3,7 +3,21 @@
 @tailwind components;
 @tailwind utilities;
 
-* { box-sizing: border-box; }
-html, body, #root { min-height: 100%; }
-body { margin: 0; min-width: 320px; background: #101311; font-family: 'Manrope', sans-serif; }
-button, input { font: inherit; }
+* {
+  box-sizing: border-box;
+}
+html,
+body,
+#root {
+  min-height: 100%;
+}
+body {
+  margin: 0;
+  min-width: 320px;
+  background: #101311;
+  font-family: 'Manrope', sans-serif;
+}
+button,
+input {
+  font: inherit;
+}

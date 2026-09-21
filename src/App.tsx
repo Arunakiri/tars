@@ -1,12 +1,23 @@
 import { useEffect, useState, type MouseEvent } from 'react';
 import { io } from 'socket.io-client';
-import GradientOrb, { type GradientOrbConfig } from './components/ui/gradient-orb';
+import { Clock3, Scale, Settings as SettingsIcon } from 'lucide-react';
+import GradientOrb, {
+  type GradientOrbConfig,
+} from './components/ui/gradient-orb';
 import './App.css';
 
 const socket = io('http://localhost:5001');
 type StatusUpdate = { isRunning: boolean };
-const orbConfig: GradientOrbConfig = { background: 'transparent', hue: 65, rotationSpeed: 0.22, noiseScale: 0.65, innerRadius: 0.1 };
-const starfieldStyle = { backgroundImage: `url(${process.env.PUBLIC_URL}/starfield.jpg)` };
+const orbConfig: GradientOrbConfig = {
+  background: 'transparent',
+  hue: 65,
+  rotationSpeed: 0.22,
+  noiseScale: 0.65,
+  innerRadius: 0.1,
+};
+const starfieldStyle = {
+  backgroundImage: `url(${process.env.PUBLIC_URL}/starfield.jpg)`,
+};
 
 function App() {
   const [intervalInput, setIntervalInput] = useState('30s');
@@ -16,10 +27,14 @@ function App() {
 
   useEffect(() => {
     const handleStatus = (data: StatusUpdate) => setIsRunning(data.isRunning);
-    const handleLog = (line: string) => setLogs((previous) => [...previous, line.trim()]);
+    const handleLog = (line: string) =>
+      setLogs((previous) => [...previous, line.trim()]);
     socket.on('status-update', handleStatus);
     socket.on('log', handleLog);
-    return () => { socket.off('status-update', handleStatus); socket.off('log', handleLog); };
+    return () => {
+      socket.off('status-update', handleStatus);
+      socket.off('log', handleLog);
+    };
   }, []);
 
   useEffect(() => {
@@ -27,18 +42,35 @@ function App() {
     return () => window.clearInterval(clock);
   }, []);
 
-  const sendRequest = async (endpoint: 'start' | 'stop', body?: { interval: string }) => {
+  const sendRequest = async (
+    endpoint: 'start' | 'stop',
+    body?: { interval: string },
+  ) => {
     try {
-      const response = await fetch(`http://localhost:5001/api/${endpoint}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: body ? JSON.stringify(body) : undefined });
+      const response = await fetch(`http://localhost:5001/api/${endpoint}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: body ? JSON.stringify(body) : undefined,
+      });
       const data: { error?: string } = await response.json();
-      if (!response.ok) setLogs((previous) => [...previous, `Error: ${data.error ?? 'Request failed'}`]);
+      if (!response.ok)
+        setLogs((previous) => [
+          ...previous,
+          `Error: ${data.error ?? 'Request failed'}`,
+        ]);
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Unknown connection error';
+      const message =
+        error instanceof Error ? error.message : 'Unknown connection error';
       setLogs((previous) => [...previous, `Connection error: ${message}`]);
     }
   };
 
-  const formattedTime = currentTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
+  const formattedTime = currentTime.toLocaleTimeString([], {
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: true,
+  });
   const presets = ['15s', '30s', '1m', '5m'];
   const lastLog = logs[logs.length - 1];
   const handleOrbClick = (event: MouseEvent<HTMLButtonElement>) => {
@@ -46,30 +78,145 @@ function App() {
     const distanceX = event.clientX - (bounds.left + bounds.width / 2);
     const distanceY = event.clientY - (bounds.top + bounds.height / 2);
     if (Math.hypot(distanceX, distanceY) > bounds.width * 0.3) return;
-    void sendRequest(isRunning ? 'stop' : 'start', isRunning ? undefined : { interval: intervalInput.trim() });
+    void sendRequest(
+      isRunning ? 'stop' : 'start',
+      isRunning ? undefined : { interval: intervalInput.trim() },
+    );
   };
 
   return (
-    <main className={`relative min-h-screen overflow-hidden bg-[#101311] px-6 text-[#f4f3ed] transition-colors duration-700 md:px-16 ${isRunning ? 'bg-[#10251b]' : ''}`}>
-      <div className="starfield-background" style={starfieldStyle} aria-hidden="true" />
+    <main
+      className={`relative min-h-screen overflow-hidden bg-[#101311] px-6 text-[#f4f3ed] transition-colors duration-700 md:px-16 ${isRunning ? 'bg-[#10251b]' : ''}`}
+    >
+      <div
+        className="starfield-background"
+        style={starfieldStyle}
+        aria-hidden="true"
+      />
       <div className="starfield-overlay" aria-hidden="true" />
       <header className="relative z-10 mx-auto flex max-w-[1440px] items-center justify-between border-b border-white/10 py-7">
-        <a className="text-[15px] font-bold tracking-[-0.03em]" href="/">C / <span className="font-normal text-white/55">Chronos</span></a>
-        <nav className="flex gap-7 text-xs"><a className="relative text-white after:absolute after:-bottom-3 after:left-0 after:right-0 after:h-px after:bg-[#c8a675]" href="/">Chronos</a><a className="cursor-default text-white/35" href="/settings" onClick={(event) => event.preventDefault()}>Settings</a></nav>
+        <a className="text-[15px] font-bold tracking-[-0.03em]" href="/">
+          C / <span className="font-normal text-white/55">Chronos</span>
+        </a>
+        <nav className="flex items-center gap-7 text-xs">
+          <a
+            className="relative flex items-center gap-2 text-white after:absolute after:-bottom-3 after:left-0 after:right-0 after:h-px after:bg-[#c8a675]"
+            href="/"
+          >
+            <Clock3 size={15} strokeWidth={1.5} aria-hidden="true" />
+            <span>Khonsu</span>
+          </a>
+          <a
+            className="flex cursor-default items-center gap-2 text-white/35"
+            href="/settings"
+            onClick={(event) => event.preventDefault()}
+          >
+            <Scale size={15} strokeWidth={1.5} aria-hidden="true" />
+            <span>Thoth</span>
+          </a>
+          <a
+            className="flex cursor-default items-center gap-2 text-white/35"
+            href="/settings"
+            onClick={(event) => event.preventDefault()}
+          >
+            <SettingsIcon size={15} strokeWidth={1.5} aria-hidden="true" />
+            <span>Settings</span>
+          </a>
+        </nav>
       </header>
 
-      <section className="relative mx-auto flex min-h-[calc(100vh-118px)] max-w-[1440px] flex-col items-center pb-20 pt-[clamp(64px,9vh,120px)]" aria-label="Chronos time announcer">
-        <div className="absolute left-0 top-[clamp(70px,12vh,150px)]"><p className="mb-4 font-mono text-[10px] uppercase tracking-[0.14em] text-[#c8a675]">The present moment</p><h1 className="max-w-[260px] text-[clamp(30px,4vw,56px)] font-medium leading-[0.98] tracking-[-0.07em]">Time, <em className="not-italic text-white/40">spoken.</em></h1><p className="mt-[18px] text-[13px] text-white/50">A quiet companion for your focus.</p></div>
+      <section
+        className="relative mx-auto flex min-h-[calc(100vh-118px)] max-w-[1440px] flex-col items-center pb-20 pt-[clamp(64px,9vh,120px)]"
+        aria-label="Chronos time announcer"
+      >
+        <div className="absolute left-0 top-[clamp(70px,12vh,150px)]">
+          <p className="mb-4 font-mono text-[10px] uppercase tracking-[0.14em] text-[#c8a675]">
+            The present moment
+          </p>
+          <h1 className="max-w-[260px] text-[clamp(30px,4vw,56px)] font-medium leading-[0.98] tracking-[-0.07em]">
+            Time, <em className="not-italic text-white/40">spoken.</em>
+          </h1>
+          <p className="mt-[18px] text-[13px] text-white/50">
+            A quiet companion for your focus.
+          </p>
+        </div>
 
-        <button className="relative mt-[2vh] grid aspect-square w-[min(90vw,620px)] cursor-pointer place-items-center overflow-hidden rounded-full bg-transparent outline-none focus-visible:ring-2 focus-visible:ring-[#c8a675]" type="button" onClick={handleOrbClick} aria-label={isRunning ? 'Stop time announcements' : 'Start time announcements'}>
-          <GradientOrb config={orbConfig} className="pointer-events-none absolute inset-0" />
-          <span className="relative z-10 flex w-[78%] -translate-y-0.5 flex-col items-center gap-3 text-center"><span className="font-mono text-[10px] uppercase tracking-[0.12em] text-white/65">{isRunning ? 'Announcing' : 'Local time'}</span><strong className="whitespace-nowrap text-[clamp(30px,4.2vw,52px)] font-medium leading-none tracking-[-0.07em]">{formattedTime}</strong><span className="font-mono text-[10px] uppercase tracking-[0.12em] text-[#c8a675]">{isRunning ? 'Tap to stop' : 'Tap to begin'}</span></span>
+        <button
+          className="relative mt-[2vh] grid aspect-square w-[min(90vw,620px)] cursor-pointer place-items-center overflow-hidden rounded-full bg-transparent outline-none focus-visible:ring-2 focus-visible:ring-[#c8a675]"
+          type="button"
+          onClick={handleOrbClick}
+          aria-label={
+            isRunning ? 'Stop time announcements' : 'Start time announcements'
+          }
+        >
+          <GradientOrb
+            config={orbConfig}
+            className="pointer-events-none absolute inset-0"
+          />
+          <span className="relative z-10 flex w-[78%] -translate-y-0.5 flex-col items-center gap-3 text-center">
+            <span className="font-mono text-[10px] uppercase tracking-[0.12em] text-white/65">
+              {isRunning ? 'Announcing' : 'Local time'}
+            </span>
+            <strong className="whitespace-nowrap text-[clamp(30px,4.2vw,52px)] font-medium leading-none tracking-[-0.07em]">
+              {formattedTime}
+            </strong>
+            <span className="font-mono text-[10px] uppercase tracking-[0.12em] text-[#c8a675]">
+              {isRunning ? 'Tap to stop' : 'Tap to begin'}
+            </span>
+          </span>
         </button>
 
-        <div className="absolute bottom-[clamp(80px,13vh,150px)] right-0 w-[210px] rounded-[14px] border border-white/15 bg-white/[0.06] p-[15px] shadow-[0_18px_50px_rgba(0,0,0,0.2)] backdrop-blur-lg"><div className="mb-[13px] flex justify-between font-mono text-[10px] uppercase tracking-[0.08em] text-white/50"><span>Interval</span><span className="text-[#c8a675]">{intervalInput}</span></div><div className="grid grid-cols-4 gap-[5px]" role="group" aria-label="Announcement interval">{presets.map((option) => <button key={option} type="button" className={`h-[29px] rounded-md border text-[10px] font-medium text-white/55 transition-colors ${intervalInput === option ? 'border-[#c8a675]/50 bg-[#c8a675]/15 text-white' : 'border-transparent'}`} onClick={() => setIntervalInput(option)} disabled={isRunning}>{option}</button>)}<label className="col-span-4 block h-[29px] rounded-md border border-white/10"><input className="h-full w-full bg-transparent text-center font-mono text-[10px] text-white outline-none placeholder:text-white/35" value={presets.includes(intervalInput) ? '' : intervalInput} onChange={(event) => setIntervalInput(event.target.value)} placeholder="Custom" disabled={isRunning} aria-label="Custom interval" /></label></div></div>
+        <div className="absolute bottom-[clamp(80px,13vh,150px)] right-0 w-[210px] rounded-[14px] border border-white/15 bg-white/[0.06] p-[15px] shadow-[0_18px_50px_rgba(0,0,0,0.2)] backdrop-blur-lg">
+          <div className="mb-[13px] flex justify-between font-mono text-[10px] uppercase tracking-[0.08em] text-white/50">
+            <span>Interval</span>
+            <span className="text-[#c8a675]">{intervalInput}</span>
+          </div>
+          <div
+            className="grid grid-cols-4 gap-[5px]"
+            role="group"
+            aria-label="Announcement interval"
+          >
+            {presets.map((option) => (
+              <button
+                key={option}
+                type="button"
+                className={`h-[29px] rounded-md border text-[10px] font-medium text-white/55 transition-colors ${intervalInput === option ? 'border-[#c8a675]/50 bg-[#c8a675]/15 text-white' : 'border-transparent'}`}
+                onClick={() => setIntervalInput(option)}
+                disabled={isRunning}
+              >
+                {option}
+              </button>
+            ))}
+            <label className="col-span-4 block h-[29px] rounded-md border border-white/10">
+              <input
+                className="h-full w-full bg-transparent text-center font-mono text-[10px] text-white outline-none placeholder:text-white/35"
+                value={presets.includes(intervalInput) ? '' : intervalInput}
+                onChange={(event) => setIntervalInput(event.target.value)}
+                placeholder="Custom"
+                disabled={isRunning}
+                aria-label="Custom interval"
+              />
+            </label>
+          </div>
+        </div>
       </section>
 
-      <footer className="absolute bottom-7 left-6 right-6 flex items-center gap-2 font-mono text-[10px] text-white/45 md:left-16 md:right-16" aria-live="polite"><span className={`h-1.5 w-1.5 rounded-full ${isRunning ? 'bg-[#8dd49c] shadow-[0_0_12px_#8dd49c]' : 'bg-white/35'}`} /><span>{isRunning ? `Active · every ${intervalInput}` : 'Ready when you are'}</span>{lastLog && <span className="ml-auto max-w-[42%] truncate text-white/30">{lastLog}</span>}</footer>
+      <footer
+        className="absolute bottom-7 left-6 right-6 flex items-center gap-2 font-mono text-[10px] text-white/45 md:left-16 md:right-16"
+        aria-live="polite"
+      >
+        <span
+          className={`h-1.5 w-1.5 rounded-full ${isRunning ? 'bg-[#8dd49c] shadow-[0_0_12px_#8dd49c]' : 'bg-white/35'}`}
+        />
+        <span>
+          {isRunning ? `Active · every ${intervalInput}` : 'Ready when you are'}
+        </span>
+        {lastLog && (
+          <span className="ml-auto max-w-[42%] truncate text-white/30">
+            {lastLog}
+          </span>
+        )}
+      </footer>
     </main>
   );
 }

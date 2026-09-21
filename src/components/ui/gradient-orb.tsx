@@ -134,21 +134,30 @@ function GradientScene({ config }: { config: Required<GradientOrbConfig> }) {
 
   const geometry = useMemo(() => {
     const geo = new THREE.BufferGeometry();
-    geo.setAttribute('position', new THREE.Float32BufferAttribute([-1, -1, 0, 3, -1, 0, -1, 3, 0], 3));
-    geo.setAttribute('uv', new THREE.Float32BufferAttribute([0, 0, 2, 0, 0, 2], 2));
+    geo.setAttribute(
+      'position',
+      new THREE.Float32BufferAttribute([-1, -1, 0, 3, -1, 0, -1, 3, 0], 3),
+    );
+    geo.setAttribute(
+      'uv',
+      new THREE.Float32BufferAttribute([0, 0, 2, 0, 0, 2], 2),
+    );
     return geo;
   }, []);
 
   useEffect(() => () => geometry.dispose(), [geometry]);
 
-  const uniforms = useMemo(() => ({
-    iTime: { value: 0 },
-    iResolution: { value: new THREE.Vector3(size.width, size.height, 1) },
-    hue: { value: config.hue },
-    rot: { value: 0 },
-    noiseScale: { value: config.noiseScale },
-    innerRadius: { value: config.innerRadius },
-  }), [config, size.height, size.width]);
+  const uniforms = useMemo(
+    () => ({
+      iTime: { value: 0 },
+      iResolution: { value: new THREE.Vector3(size.width, size.height, 1) },
+      hue: { value: config.hue },
+      rot: { value: 0 },
+      noiseScale: { value: config.noiseScale },
+      innerRadius: { value: config.innerRadius },
+    }),
+    [config, size.height, size.width],
+  );
 
   useFrame((state) => {
     if (!materialRef.current) return;
@@ -160,16 +169,41 @@ function GradientScene({ config }: { config: Required<GradientOrbConfig> }) {
     uniformsRef.iTime.value = time;
     uniformsRef.hue.value = config.hue;
     uniformsRef.rot.value = rotationRef.current;
-    uniformsRef.iResolution.value.set(size.width * viewport.dpr, size.height * viewport.dpr, size.width / size.height);
+    uniformsRef.iResolution.value.set(
+      size.width * viewport.dpr,
+      size.height * viewport.dpr,
+      size.width / size.height,
+    );
   });
 
-  return <mesh geometry={geometry} frustumCulled={false}><shaderMaterial ref={materialRef} vertexShader={vertexShader} fragmentShader={fragmentShader} uniforms={uniforms} transparent depthWrite={false} depthTest={false} /></mesh>;
+  return (
+    <mesh geometry={geometry} frustumCulled={false}>
+      <shaderMaterial
+        ref={materialRef}
+        vertexShader={vertexShader}
+        fragmentShader={fragmentShader}
+        uniforms={uniforms}
+        transparent
+        depthWrite={false}
+        depthTest={false}
+      />
+    </mesh>
+  );
 }
 
-export function GradientOrb({ config: overrides, className = '' }: { config?: GradientOrbConfig; className?: string }) {
+export function GradientOrb({
+  config: overrides,
+  className = '',
+}: {
+  config?: GradientOrbConfig;
+  className?: string;
+}) {
   const config = useMemo(() => ({ ...defaults, ...overrides }), [overrides]);
   return (
-    <div className={`h-full w-full ${className}`} style={{ background: config.background }}>
+    <div
+      className={`h-full w-full ${className}`}
+      style={{ background: config.background }}
+    >
       <Canvas frameloop="always" gl={{ antialias: true, alpha: true }}>
         <GradientScene config={config} />
       </Canvas>
